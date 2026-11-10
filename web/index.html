@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7f8">
+    <title>AirOps · Inventory preparation</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="app.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#home" aria-label="AirOps preparation home">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span>AirOps</span>
+      </a>
+      <div class="topbar-context"><span>Inventory preparation</span><span class="context-separator">/</span><span id="case-context">New case</span></div>
+      <div class="topbar-right"><span class="privacy-state"><span class="privacy-dot"></span> Case files stay in-session</span></div>
+    </header>
+
+    <main class="app-frame">
+      <aside class="workflow-rail" aria-label="Preparation stages">
+        <div class="rail-heading">Prepare for AIS</div>
+        <ol class="stage-list">
+          <li><button class="stage-link is-current" data-stage-link="contract" type="button"><span class="stage-marker">1</span><span><strong>Contract file</strong><small>Prepare and download</small></span></button></li>
+          <li class="stage-connector" aria-hidden="true"></li>
+          <li><button class="stage-link" data-stage-link="blocks" type="button"><span class="stage-marker">2</span><span><strong>Block file</strong><small>Prepare and download</small></span></button></li>
+        </ol>
+        <div class="rail-config">
+          <span>Configuration</span>
+          <button class="stage-link is-current" type="button" data-stage-link="profiles" data-config-view="tnc"><span class="stage-marker">⚙</span><span><strong>Airline T&Cs</strong><small>Manage approved profiles</small></span></button>
+          <button class="stage-link" type="button" data-stage-link="profiles" data-config-view="block"><span class="stage-marker">▦</span><span><strong>Block</strong><small>Manage block configurations</small></span></button>
+          <button class="stage-link" type="button" data-stage-link="profiles" data-config-view="templates"><span class="stage-marker">▤</span><span><strong>Upload templates</strong><small>Manage AIS templates</small></span></button>
+        </div>
+      </aside>
+
+      <section class="workspace" id="home">
+        <div class="page-heading">
+          <div>
+            <h1 id="page-title">Prepare contract upload</h1>
+            <p id="page-subtitle">Bring procurement details into the AIS contract template, review the gaps, then download a draft.</p>
+          </div>
+          <span class="draft-label"><span class="draft-dot"></span> Preparation draft</span>
+        </div>
+        <section class="panel contract-terms-gate" id="contract-terms-gate">
+          <div class="panel-heading"><div><h2>Airline T&C profile <span class="required-label">Required</span></h2><p>Choose the finalized airline profile that applies to this contract batch.</p></div><button class="text-button" type="button" data-stage-link="profiles" data-config-view="tnc">Manage T&Cs</button></div>
+          <div class="terms-gate-controls"><label class="field"><span>Airline profile</span><select id="contract-airline"><option value="">Select an approved airline profile</option></select></label><span class="inline-status" id="contract-profile-status" aria-live="polite">Select a complete profile to continue.</span></div>
+          <div class="mapping-alert terms-alert" id="contract-terms-alert" role="alert">No approved profile selected. Choose a complete profile or open Airline T&Cs to create one before generating contracts.</div>
+        </section>
+
+        <div class="stage-panel" id="contract-panel">
+          <section class="panel file-panel">
+            <div class="panel-heading">
+              <div><h2>Procurement source</h2><p>Email, airline workbook, or procurement CSV</p></div>
+              <span class="panel-step">Input</span>
+            </div>
+            <label class="file-drop" for="contract-source-file" id="contract-source-drop">
+              <span class="drop-glyph" aria-hidden="true">＋</span>
+              <span class="drop-title">Choose a source file</span>
+              <span class="drop-subtitle">EML, XLSX, XLSB, CSV · up to 20 MB</span>
+              <input id="contract-source-file" type="file" accept=".eml,.xlsx,.xlsb,.csv,.tsv">
+            </label>
+            <div class="file-meta file-meta-row" id="contract-source-meta" hidden><span data-file-name></span><button class="clear-file" type="button" data-clear-file="contract-source-file">Remove file</button></div>
+            <div class="panel-actions"><button class="button button-primary" id="inspect-contract-source" type="button">Inspect source</button><span class="inline-status" id="contract-source-status" aria-live="polite"></span></div>
+            <div class="attachment-note" id="email-note" hidden></div>
+          </section>
+
+          <section class="panel template-panel">
+            <div class="panel-heading">
+              <div><h2>AIS contract upload template</h2><p>Use the sample for the upload, not an AIS download</p></div>
+              <span class="panel-step">Template</span>
+            </div>
+            <div class="template-field-count"><span><strong id="contract-template-active-name">Loading demo contract template…</strong><small id="contract-template-active-count">Template not loaded</small></span><button class="text-button" type="button" data-stage-link="profiles" data-config-view="templates">Manage templates</button></div>
+          </section>
+        </div>
+
+        <section class="panel departures-builder" id="departures-builder" hidden>
+          <div class="panel-heading"><div><h2>Build from source sectors</h2><p>Routes and dates come from the paired Summary when available, with PNR matching for return trips.</p></div><span class="panel-step">Contract mapping</span></div>
+          <div class="builder-controls"><label class="field"><span>Airline profile</span><select id="departures-airline"><option value="">Choose an approved airline</option></select></label><button class="button button-secondary" id="refresh-airlines" type="button">Refresh profiles</button><button class="button button-primary" id="build-departures-contract" type="button" disabled>Build contract rows</button></div>
+          <p class="inline-status" id="departures-build-status" aria-live="polite"></p>
+        </section>
+
+        <section class="panel inspection-panel" id="contract-inspection" hidden>
+          <div class="panel-heading">
+            <div><h2>What the source contains</h2><p id="contract-inspection-copy">Detected worksheets and candidate inventory groups</p></div>
+            <button class="text-button" id="clear-contract-case" type="button">Clear case</button>
+          </div>
+          <div class="source-sheets" id="contract-sheets"></div>
+          <div class="finding-line" id="contract-finding"></div>
+        </section>
+
+        <section class="panel mapping-panel" id="contract-mapping" hidden>
+          <div class="panel-heading mapping-heading">
+            <div><h2>Contract rows</h2><p>Values from the source are suggested. Fill the commercial terms from approved rules.</p></div>
+            <span class="mapping-count" id="contract-row-count">0 rows</span>
+          </div>
+          <div id="contract-row-editor" class="row-editor"></div>
+          <label class="confirm-line" id="contract-review-line" hidden><input id="confirm-contract-review" type="checkbox"><span>I reviewed the route direction, date range, cancellation/status counts, airline profile version, and AIS upload columns.</span></label>
+          <div class="export-bar">
+            <div><strong id="contract-readiness">Upload source and template to begin</strong><small id="contract-readiness-detail">Unconfirmed and blank fields will remain visible in the report.</small></div>
+            <label class="field output-format"><span>Download as</span><select id="contract-output-format"><option value="csv">CSV</option><option value="xlsx">Excel workbook (.xlsx)</option></select></label>
+            <button class="button button-primary" id="download-contract" type="button" disabled>Download contract draft</button>
+          </div>
+          <div class="validation-results" id="contract-validation" aria-live="polite"></div>
+        </section>
+
+        <section class="profile-workspace" id="profiles-panel" hidden>
+          <div class="configuration-tabs" role="tablist" aria-label="Configuration sections">
+            <button class="configuration-tab is-selected" id="tab-airline-tnc" type="button" role="tab" aria-selected="true" aria-controls="tnc-settings-panel" data-config-view="tnc">Airline T&Cs</button>
+            <button class="configuration-tab" id="tab-upload-templates" type="button" role="tab" aria-selected="false" aria-controls="templates-settings-panel" data-config-view="templates">Upload templates</button>
+            <button class="configuration-tab" id="tab-block-config" type="button" role="tab" aria-selected="false" aria-controls="block-config-settings-panel" data-config-view="block">Block</button>
+          </div>
+          <div id="tnc-settings-panel" role="tabpanel" aria-labelledby="tab-airline-tnc">
+          <section class="panel profile-intro">
+            <div class="panel-heading"><div><h2>Airline terms library</h2><p>Approved airline constants and T&Cs feed contract drafts. Procurement files and case outputs are never retained.</p></div><div class="panel-heading-actions"><span id="profile-store-status" class="panel-step">Loading profiles…</span><button class="button button-secondary" id="new-airline-profile" type="button">New airline profile</button></div></div>
+            <div class="profile-toolbar">
+              <label class="field"><span>Airline</span><select id="profile-airline"><option value="">Select or add airline</option></select></label>
+              <label class="field"><span>Add airline code</span><input id="new-airline-code" maxlength="8" placeholder="e.g. AI" autocomplete="off"></label>
+            </div>
+            <div class="profile-actions">
+              <label class="compact-file profile-import" for="profile-import-file"><span class="compact-file-icon">FILE</span><span><strong>Import an AIS contract result</strong><small>Extract shared constants and T&Cs; conflicts need review.</small></span><input id="profile-import-file" type="file" accept=".csv,.tsv,.xlsx,.xlsb"></label>
+              <button class="button button-secondary" id="load-profile" type="button">Load profile</button>
+            </div>
+          </section>
+
+          <section class="panel profile-fields-panel">
+            <div class="panel-heading"><div><h2 id="profile-form-title">Select an airline profile</h2><p>Fill every required field. Dummy to real PNR deadline is required only when Dummy contract is Yes.</p></div><span id="profile-version" class="mapping-count">No version loaded</span></div>
+            <div class="profile-field-groups" id="profile-fields"></div>
+            <div class="profile-history" id="profile-history"></div>
+            <div class="profile-submit-row">
+              <p id="profile-status" class="inline-status" role="status" aria-live="polite"></p>
+              <button class="button button-primary" id="save-profile" type="button" disabled>Save approved profile</button>
+            </div>
+          </section>
+          </div>
+          <div id="block-config-settings-panel" role="tabpanel" aria-labelledby="tab-block-config" hidden>
+            <section class="panel profile-intro">
+              <div class="panel-heading"><div><h2>Block configuration library</h2><p>Approved reusable values fill AIS block fields that are not reliably provided by procurement or the AIS contract result. Each saved BC profile is versioned independently from Airline T&Cs.</p></div><div class="panel-heading-actions"><span id="block-profile-store-status" class="panel-step">Loading block profiles…</span><button class="button button-secondary" id="new-block-profile" type="button" disabled>New Block Config</button></div></div>
+              <div class="profile-toolbar">
+                <label class="field"><span>Block configuration</span><select id="block-profile-select"><option value="">Select a Block Config</option></select></label>
+                <label class="field"><span>Profile ID</span><input id="block-profile-code" maxlength="16" placeholder="BC1"><small>Use BC1, BC2, and so on. The app displays these as “Block Config 1”, “Block Config 2”, etc.</small></label>
+              </div>
+              <div class="block-profile-template">
+                <label class="compact-file" for="block-profile-template-file"><span class="compact-file-icon">FILE</span><span><strong>Template for this Block Config</strong><small id="block-profile-template-name">Choose a pre-submit AIS block template</small><input id="block-profile-template-file" type="file" accept=".csv,.tsv,.xlsx,.xlsb"></span></label>
+                <div class="template-field-count"><small id="block-profile-template-count">Template headers become editable profile fields when they are not supplied by source data or derived rules.</small><button class="button button-secondary" id="save-block-template" type="button" disabled>Use template for profile</button></div>
+                <small id="block-profile-template-status" class="inline-status" role="status" aria-live="polite"></small>
+              </div>
+              <div class="block-profile-import"><label class="compact-file" for="block-profile-import-file"><span class="compact-file-icon">FILE</span><span><strong>Suggest values from a completed block file</strong><small id="block-profile-import-name">Only consistent values are suggested; review before saving.</small><input id="block-profile-import-file" type="file" accept=".csv,.tsv,.xlsx,.xlsb"></span></label><button class="button button-secondary" id="import-block-profile" type="button" disabled>Review shared values</button><span id="block-profile-import-status" class="inline-status" role="status" aria-live="polite"></span></div>
+            </section>
+            <section class="panel profile-fields-panel">
+              <div class="panel-heading"><div><h2 id="block-profile-title">Select or create a block configuration</h2><p>All values are optional. Add approved defaults where known; leave fields blank when unknown or not applicable.</p></div><span id="block-profile-version" class="mapping-count">No version loaded</span></div>
+              <div id="block-profile-fields" class="profile-field-groups"></div>
+              <div class="profile-submit-row"><p id="block-profile-status" class="inline-status" role="status" aria-live="polite"></p><button class="button button-primary" id="save-block-profile" type="button" disabled>Save block profile</button></div>
+            </section>
+          </div>
+          <div id="templates-settings-panel" role="tabpanel" aria-labelledby="tab-upload-templates" hidden>
+          <section class="panel template-settings-panel">
+            <div class="panel-heading"><div><h2>AIS upload templates</h2><p>Manage the contract upload template here. Block templates are saved separately on each Block Config profile.</p></div></div>
+            <div class="template-settings-grid">
+              <div class="template-setting">
+                <label class="compact-file" for="contract-template-file"><span class="compact-file-icon">FILE</span><span><strong>Contract upload template</strong><small id="contract-template-name">Loading default…</small><input id="contract-template-file" type="file" accept=".csv,.tsv,.xlsx,.xlsb"></span></label>
+                <div class="template-field-count"><small id="contract-template-count">Template not loaded</small><button class="clear-file" type="button" data-clear-file="contract-template-file" hidden>Restore demo template</button></div>
+                <div class="template-warning" id="contract-template-warning" hidden></div>
+              </div>
+            </div>
+          </section>
+          </div>
+        </section>
+
+        <div class="stage-panel" id="blocks-panel" hidden>
+          <div class="block-input-column">
+            <section class="panel file-panel">
+              <div class="panel-heading"><div><h2>Block configuration</h2><p>Choose the approved BC profile for constant AIS block fields.</p></div><button class="text-button" type="button" data-stage-link="profiles" data-config-view="block">Manage Block Config</button></div>
+              <label class="field"><span>Block configuration</span><select id="block-profile-active"><option value="">Select a saved Block Config</option></select></label>
+            </section>
+            <section class="panel file-panel">
+              <div class="panel-heading"><div><h2>AIS contract result</h2><p>Download this after submitting the contract file in AIS</p></div><span class="panel-step">ID handoff</span></div>
+              <div class="compact-file"><span class="compact-file-icon">ID</span><span class="compact-file-copy"><strong id="contract-result-name">Select the AIS contract result</strong><small>Must contain generated contract IDs.</small></span><label class="button button-secondary compact-file-button" for="contract-result-file">Choose file<input id="contract-result-file" type="file" accept=".csv,.tsv,.xlsx,.xlsb"></label></div>
+              <div class="file-meta file-meta-row" id="contract-result-meta" hidden><span data-file-name></span><button class="clear-file" type="button" data-clear-file="contract-result-file">Remove file</button></div>
+              <div class="inline-status" id="contract-result-status" aria-live="polite"></div>
+            </section>
+          </div>
+          <div class="block-source-column">
+            <section class="panel file-panel">
+              <div class="panel-heading"><div><h2>Procurement source</h2><p>Upload the same source again; case data is not stored between sessions</p></div><span class="panel-step">Input</span></div>
+              <label class="file-drop" for="block-source-file" id="block-source-drop"><span class="drop-glyph" aria-hidden="true">＋</span><span class="drop-title">Choose the procurement source</span><span class="drop-subtitle">EML, XLSX, XLSB, CSV · up to 20 MB</span><input id="block-source-file" type="file" accept=".eml,.xlsx,.xlsb,.csv,.tsv"></label>
+              <div class="file-meta file-meta-row" id="block-source-meta" hidden><span data-file-name></span><button class="clear-file" type="button" data-clear-file="block-source-file">Remove file</button></div>
+              <div class="panel-actions"><button class="button button-primary" id="inspect-block-source" type="button">Inspect source</button><span class="inline-status" id="block-source-status" aria-live="polite"></span></div>
+            </section>
+            <section class="panel template-panel">
+              <div class="panel-heading"><div><h2>AIS block upload template</h2><p>The uploaded schema must be the pre-submit template</p></div><span class="panel-step">Template</span></div>
+              <div class="template-field-count"><span><strong id="block-template-active-name">Loading demo block template…</strong><small id="block-template-active-count">Template not loaded</small></span><button class="text-button" type="button" data-stage-link="profiles" data-config-view="block">Manage Block Config</button></div>
+              <div class="template-warning" id="block-template-warning" hidden></div>
+            </section>
+          </div>
+          <section class="panel block-generation-panel" aria-labelledby="block-generation-title">
+            <div class="panel-heading"><div><h2 id="block-generation-title">Generate block files</h2><p>Each AIS contract ID gets its own block file. Files are bundled into one download.</p></div><span class="panel-step">Output</span></div>
+            <div class="block-generation-actions"><label class="field output-format"><span>File format inside ZIP</span><select id="block-output-format"><option value="csv">CSV</option><option value="xlsx">Excel workbook (.xlsx)</option></select></label><button class="button button-primary" id="generate-block-files" type="button" disabled>Generate &amp; download all block files</button></div>
+            <div class="inline-status" id="block-build-status" aria-live="polite"></div>
+            <div class="validation-results" id="block-validation" aria-live="polite"></div>
+          </section>
+        </div>
+
+        <footer class="workspace-footer"><span>AirOps preparation workbench</span><span>CSV and Excel generation · AIS upload stays with the operator</span></footer>
+      </section>
+    </main>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

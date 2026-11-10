@@ -1,0 +1,10 @@
+.venv/
+var/
+.env
+.env.*
+__pycache__/
+*.py[cod]
+.DS_Store
+.playwright-mcp/
+.taste-skill/
+~$*
